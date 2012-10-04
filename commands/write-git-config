@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Usage:    ssh git@host write-git-config <repo> <key> <value>
+#
+# Set git-config value for user-created ("wild") repo.
+
+die() { echo "$@" >&2; exit 1; }
+usage() { perl -lne 'print substr($_, 2) if /^# Usage/../^$/' < $0; exit 1; }
+[ -z "$1" ] && [ -z "$2" ] && [ -z "$3" ] && usage
+[ "$1" = "-h" ] && usage
+[ -z "$GL_USER" ] && die GL_USER not set
+
+# ----------------------------------------------------------------------
+repo=$1; shift
+key=$1; shift
+value=$1; shift
+
+# this shell script takes arguments that are completely under the user's
+# control, so make sure you quote those suckers!
+
+if gitolite query-rc -q WRITER_CAN_UPDATE_DESC
+then
+    gitolite access -q "$repo" $GL_USER W any || die You are not authorised
+else
+    gitolite creator "$repo" $GL_USER || die You are not authorised
+fi
+
+# if it passes, $repo is a valid repo name so it is known to contain only sane
+# characters.  This is because 'gitolite creator' return true only if there
+# *is* a repo of that name and it has a gl-creator file that contains the same
+# text as $GL_USER.
+
+configfile=`gitolite query-rc GL_REPO_BASE`/"$repo".git/config
+
+git config --file "$configfile" "$key" "$value"
