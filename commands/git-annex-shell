@@ -40,7 +40,8 @@ my $newcmd = "$start$rc{GL_REPO_BASE}/$repo$end";
 # when readonly access is needed.
 if ( can_write($repo) ) {
 } elsif ( can_read($repo) ) {
-    $ENV{GIT_ANNEX_SHELL_READONLY} = 1;
+    # Strange ? this doesn't work
+    # $ENV{GIT_ANNEX_SHELL_READONLY} = 1;
 } else {
     die "$repo $ENV{GL_USER} DENIED\n";
 }
